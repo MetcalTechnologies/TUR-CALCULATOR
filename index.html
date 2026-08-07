@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TUR / TAR &amp; Decision Rule — Metcal Technologies</title>
+<meta name="theme-color" content="#144A81">
+<style>
+:root{--navy:#0f2942;--blue:#1a5f9e;--accent:#2f8fd0;--brand:#144A81;--bg:#f4f7fa;--card:#fff;--border:#d9e2ec;--text:#1c2b39;--muted:#5b7083;--orange:#e8792a;--warn:#b45309;--warnbg:#fffbeb;--ok:#166534;--okbg:#f0fdf4;--bad:#b91c1c;--badbg:#fef2f2}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);padding:24px}
+.wrap{max-width:1000px;margin:0 auto}.brand{font-size:22px;font-weight:800;color:var(--brand);margin-bottom:14px}
+.brand a{color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;margin-left:12px}.brand a:hover{text-decoration:underline}
+header h1{font-size:21px;margin:0 0 4px;color:var(--navy)}header p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.55}
+.tabs{display:flex;gap:6px;margin:18px 0 0;flex-wrap:wrap}
+.tab{background:#fff;border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;padding:10px 16px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{color:var(--navy);background:var(--card);box-shadow:0 -2px 0 var(--blue) inset}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(15,41,66,.04)}
+.tabs+.card{border-top-left-radius:0}.card h2{font-size:14px;margin:0 0 14px;color:var(--navy)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}.field{flex:1;min-width:135px}
+label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:15px;background:#fff;color:var(--text)}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.out{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.kpi{flex:1;min-width:150px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+.kpi .v{font-size:24px;font-weight:800;color:var(--navy);margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.work{margin-top:14px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.7;color:var(--navy);overflow-x:auto;white-space:pre}
+table{width:100%;border-collapse:collapse;min-width:520px}.tablewrap{overflow-x:auto}
+th,td{padding:9px 10px;text-align:left;font-size:13.5px;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+td.n{font-variant-numeric:tabular-nums}td.b{font-weight:700;color:var(--navy)}td input,td select{padding:7px 8px;font-size:13.5px}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:20px}
+.pass{background:var(--okbg);color:var(--ok)}.fail{background:var(--badbg);color:var(--bad)}.cond{background:var(--warnbg);color:var(--warn)}
+.warnbox{background:var(--warnbg);border:1px solid #fde68a;color:var(--warn);padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.55;margin-top:14px}
+.okbox{background:var(--okbg);border:1px solid #bbf7d0;color:var(--ok);padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.55;margin-top:14px}
+.note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6}.hide{display:none}
+footer{font-size:11px;color:var(--muted);text-align:center;margin-top:26px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">Metcal<a href="../">&larr; All tools</a></div>
+  <header><h1>TUR / TAR &amp; Decision Rule</h1>
+    <p>Test uncertainty ratio, test accuracy ratio, and guard-banded accept/reject limits for statements of conformity.</p></header>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" onclick="tab('t1',this)">TUR &amp; TAR</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="tab('t2',this)">Decision rule</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="tab('t3',this)">Uncertainty budget</button>
+  </div>
+  <div class="card" id="t1">
+    <h2>Ratios</h2>
+    <div class="row" style="margin-bottom:12px;">
+      <div class="field"><label for="unit">Unit label</label><input id="unit" value="kPa" oninput="calc()"></div>
+      <div class="field"><label for="tolMode">Tolerance form</label>
+        <select id="tolMode" onchange="calc()"><option value="sym" selected>Symmetric &plusmn;</option><option value="asym">Asymmetric</option></select></div>
+    </div>
+    <div class="row" style="margin-bottom:12px;" id="symRow">
+      <div class="field"><label for="tol">UUT tolerance &plusmn;</label><input type="number" step="any" id="tol" value="0.5" oninput="calc()"></div>
+      <div class="field"><label for="U">Expanded uncertainty U (k = 2)</label><input type="number" step="any" id="U" value="0.1" oninput="calc()"></div>
+      <div class="field"><label for="std">Reference standard tolerance &plusmn;</label><input type="number" step="any" id="std" value="0.1" oninput="calc()"></div>
+    </div>
+    <div class="row hide" style="margin-bottom:12px;" id="asymRow">
+      <div class="field"><label for="ul">Upper limit (+)</label><input type="number" step="any" id="ul" value="0.5" oninput="calc()"></div>
+      <div class="field"><label for="ll">Lower limit (&minus;)</label><input type="number" step="any" id="ll" value="-0.3" oninput="calc()"></div>
+    </div>
+    <div class="out" id="k1"></div><div class="work" id="w1"></div><div id="v1"></div>
+    <p class="note"><strong>TUR</strong> is the tolerance span divided by twice the expanded uncertainty of the <em>measurement process</em> &mdash; not of the reference standard alone. The standard's uncertainty is only one contributor; repeatability, resolution of the item under test and environment all belong in the denominator. Using the standard's accuracy alone gives <strong>TAR</strong>, which is the older and weaker measure.</p>
+  </div>
+  <div class="card hide" id="t2">
+    <h2>Accept / reject against the tolerance</h2>
+    <div class="row" style="margin-bottom:12px;">
+      <div class="field"><label for="dev">Measured deviation from nominal</label><input type="number" step="any" id="dev" value="0.44" oninput="calc()"></div>
+      <div class="field"><label for="gbMode">Decision rule</label>
+        <select id="gbMode" onchange="calc()"><option value="all" selected>Compare all three</option><option value="simple">Simple acceptance (shared risk)</option><option value="binary">Guard band w = U</option><option value="z540">Z540.3 Method 6 (PFA &le; 2 %)</option></select></div>
+    </div>
+    <div class="tablewrap"><table><thead><tr><th>Decision rule</th><th>Guard band w</th><th>Acceptance limits</th><th>Verdict</th></tr></thead><tbody id="drows"></tbody></table></div>
+    <div id="v2"></div>
+    <p class="note">Simple acceptance is only appropriate where the risk is agreed with the customer, and ANSI/NCSL Z540.3 requires TUR&nbsp;&ge;&nbsp;4:1 for it. Below that, guard band or document the false-accept risk. ISO/IEC&nbsp;17025:2017 &sect;7.1.3 requires the decision rule to be documented and agreed before you issue a statement of conformity.</p>
+  </div>
+  <div class="card hide" id="t3">
+    <h2>Combine contributions into U</h2>
+    <div class="tablewrap"><table><thead><tr><th>Contribution</th><th>Value</th><th>Distribution</th><th>Divisor</th><th>u&#7522;</th><th>u&#7522;&sup2;</th></tr></thead><tbody id="brows"></tbody></table></div>
+    <div class="out" id="k3"></div>
+    <div class="row" style="margin-top:16px;"><div class="field" style="flex:0 0 auto;"><button class="tab" style="border-radius:8px;border-bottom:1px solid var(--border);" onclick="useBudget()">Use this U in the ratios</button></div></div>
+    <p class="note">Divisors follow the GUM: a value quoted as an expanded uncertainty at k&nbsp;=&nbsp;2 is divided by 2; a half-width limit with no distribution stated is treated as rectangular and divided by &radic;3; triangular by &radic;6; U-shaped by &radic;2. Display resolution is normally entered as a rectangular half-width of half the least significant digit.</p>
+  </div>
+  <footer>TUR per ANSI/NCSL Z540.3; guard-band multiplier M = 1.04 &minus; exp(0.38&nbsp;ln&nbsp;TUR &minus; 0.54) from the Z540.3 Handbook, fitted for a worst-case 2&nbsp;% probability of false accept.<br>Reference tool only &mdash; the decision rule actually applied must be the one documented and agreed with the customer.<br>Metcal Technologies (M) Sdn. Bhd.</footer>
+</div>
+<script>
+function num(id){const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v;}
+function f(v,d){ if(v===null||v===undefined||!isFinite(v))return '\u2014';
+  const a=Math.abs(v); if(a!==0&&(a<1e-6||a>=1e9))return v.toExponential(3);
+  let s=v.toFixed(d===undefined?4:d); if(s.indexOf('.')>=0)s=s.replace(/0+$/,'').replace(/\.$/,''); return s; }
+function kpi(k,v,s){return '<div class="kpi"><div class="k">'+k+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>';}
+function pill(c,t){return '<span class="pill '+c+'">'+t+'</span>';}
+function tab(id,btn){['t1','t2','t3'].forEach(function(t){document.getElementById(t).classList.toggle('hide',t!==id);});
+  document.querySelectorAll('.tab[role="tab"]').forEach(function(b){b.setAttribute('aria-selected',b===btn?'true':'false');});}
+/* Z540.3 Handbook Method 6 multiplier, fitted for worst-case PFA of 2 %.
+   Goes negative above TUR 4.59, i.e. no guard band needed; clamped at 0 so the
+   acceptance limit is never widened beyond the tolerance. */
+function mZ(tur){ if(!(tur>0)) return null; var m=1.04-Math.exp(0.38*Math.log(tur)-0.54); return m>0?m:0; }
+var DIST=[['k2','Expanded U (k = 2)',2],['k1','Standard u (k = 1)',1],['rect','Rectangular',Math.sqrt(3)],['tri','Triangular',Math.sqrt(6)],['ushape','U-shaped',Math.sqrt(2)]];
+var BROWS=[['Reference standard','k2',0.08],['Repeatability','k1',0.02],['Resolution of the item','rect',0.005],['Environment / drift','rect',0.01],['Other','rect',0]];
+function buildBudget(){document.getElementById('brows').innerHTML=BROWS.map(function(r,i){
+  return '<tr><td>'+r[0]+'</td><td><input type="number" step="any" id="bv'+i+'" value="'+r[2]+'" oninput="calcBudget()"></td>'
+    +'<td><select id="bd'+i+'" onchange="calcBudget()">'+DIST.map(function(d){return '<option value="'+d[0]+'"'+(d[0]===r[1]?' selected':'')+'>'+d[1]+'</option>';}).join('')+'</select></td>'
+    +'<td class="n" id="bk'+i+'"></td><td class="n" id="bu'+i+'"></td><td class="n" id="bq'+i+'"></td></tr>';}).join('');calcBudget();}
+function calcBudget(){var sum=0;
+  BROWS.forEach(function(r,i){var v=num('bv'+i)||0,key=document.getElementById('bd'+i).value;
+    var dd=DIST.filter(function(d){return d[0]===key;})[0],div=dd?dd[2]:1;var u=Math.abs(v)/div;sum+=u*u;
+    document.getElementById('bk'+i).textContent=f(div,4);document.getElementById('bu'+i).textContent=f(u,6);document.getElementById('bq'+i).textContent=f(u*u,8);});
+  var uc=Math.sqrt(sum),U=2*uc;window.__U=U;
+  document.getElementById('k3').innerHTML=kpi('Combined u<sub>c</sub>',f(uc,6),'root sum of squares')+kpi('Expanded U',f(U,6),'k = 2, about 95 % coverage');}
+function useBudget(){if(window.__U===undefined)return;document.getElementById('U').value=f(window.__U,8);tab('t1',document.querySelectorAll('.tab[role="tab"]')[0]);calc();}
+function calc(){
+  var mode=document.getElementById('tolMode').value,un=document.getElementById('unit').value||'';
+  document.getElementById('symRow').classList.toggle('hide',mode!=='sym');
+  document.getElementById('asymRow').classList.toggle('hide',mode==='sym');
+  var U=num('U'),K=document.getElementById('k1'),W=document.getElementById('w1'),V=document.getElementById('v1');
+  var span=null,tolPlus=null,tolMinus=null;
+  if(mode==='sym'){var t=num('tol');if(t!==null){span=2*Math.abs(t);tolPlus=Math.abs(t);tolMinus=-Math.abs(t);}}
+  else{var ul=num('ul'),ll=num('ll');if(ul!==null&&ll!==null&&ul>ll){span=ul-ll;tolPlus=ul;tolMinus=ll;}}
+  if(span===null||U===null||U<=0){K.innerHTML='';W.textContent='Enter the tolerance and a positive expanded uncertainty.';V.innerHTML='';
+    document.getElementById('drows').innerHTML='';document.getElementById('v2').innerHTML='';return;}
+  var tur=span/(2*U),stdTol=num('std');
+  var tar=(mode==='sym'&&stdTol!==null&&stdTol!==0)?Math.abs(num('tol')/stdTol):null;
+  K.innerHTML=kpi('TUR',f(tur,2)+' : 1',(tur>=4?'meets the 4:1 rule':'below 4:1 \u2014 guard band or document the risk'))
+   +(tar!==null?kpi('TAR',f(tar,2)+' : 1','tolerance \u00f7 standard tolerance'):'')
+   +kpi('Tolerance span',f(span,6)+' '+un,f(tolMinus,6)+' to +'+f(tolPlus,6))
+   +kpi('U (k = 2)',f(U,6)+' '+un,'measurement process');
+  W.textContent='TUR = tolerance span / (2 \u00d7 U)\nTUR = '+f(span,6)+' / (2 \u00d7 '+f(U,6)+')\nTUR = '+f(tur,4)+' : 1'
+    +(tar!==null?('\n\nTAR = UUT tolerance / standard tolerance\nTAR = '+f(Math.abs(num('tol')),6)+' / '+f(Math.abs(stdTol),6)+' = '+f(tar,4)+' : 1'):'');
+  V.innerHTML=tur>=4?'<div class="okbox"><strong>TUR '+f(tur,2)+':1 meets the 4:1 rule.</strong> Simple acceptance is available if that is the decision rule you have agreed.</div>'
+   :'<div class="warnbox"><strong>TUR '+f(tur,2)+':1 is below 4:1.</strong> Simple acceptance is not appropriate on its own \u2014 apply a guard band or document the false-accept risk. See the decision rule tab.</div>';
+  var dev=num('dev'),want=document.getElementById('gbMode').value,m=mZ(tur);
+  var rules=[{id:'simple',name:'Simple acceptance (shared risk)',w:0},{id:'binary',name:'Guard band w = U',w:U},
+    {id:'z540',name:'Z540.3 Method 6 (PFA \u2264 2 %)',w:(m===null?null:m*U),note:(m===0?'TUR \u2265 4.59, no guard band required':'M = '+f(m,4))}];
+  document.getElementById('drows').innerHTML=rules.filter(function(r){return want==='all'||want===r.id;}).map(function(r){
+    if(r.w===null)return '';var au=tolPlus-r.w,al=tolMinus+r.w;var verdict='<span class="s">enter a measured deviation</span>';
+    if(dev!==null){ if(au<al) verdict=pill('fail','NOT USABLE');
+      else if(dev<=au+1e-12&&dev>=al-1e-12) verdict=pill('pass','ACCEPT');
+      else if(dev<=tolPlus+1e-12&&dev>=tolMinus-1e-12) verdict=pill('cond','REJECT \u2014 inside tolerance but within the guard band');
+      else verdict=pill('fail','REJECT'); }
+    return '<tr><td class="b">'+r.name+(r.note?'<br><span style="font-weight:400;color:var(--muted);font-size:12px;">'+r.note+'</span>':'')+'</td>'
+      +'<td class="n">'+f(r.w,6)+' '+un+'</td><td class="n">'+f(al,6)+' to '+f(au,6)+' '+un+'</td><td>'+verdict+'</td></tr>';}).join('');
+  var V2=document.getElementById('v2');
+  if(dev===null){V2.innerHTML='';}
+  else{var auZ=tolPlus-(m||0)*U,alZ=tolMinus+(m||0)*U;
+    var inTol=dev<=tolPlus+1e-12&&dev>=tolMinus-1e-12,inZ=dev<=auZ+1e-12&&dev>=alZ-1e-12;
+    V2.innerHTML=(inTol&&!inZ)?'<div class="warnbox"><strong>Measured '+f(dev,6)+' '+un+' falls inside the tolerance but within the guard band.</strong> Under simple acceptance this passes; under a guard-banded rule it does not. Which one applies is whatever you documented and agreed with the customer.</div>'
+      :(inTol?'<div class="okbox"><strong>Measured '+f(dev,6)+' '+un+' is inside tolerance under every rule shown.</strong></div>'
+      :'<div class="warnbox"><strong>Measured '+f(dev,6)+' '+un+' is outside the tolerance.</strong> It fails regardless of decision rule.</div>');}
+}
+buildBudget(); calc();</script>
+</body>
+</html>
