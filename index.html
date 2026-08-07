@@ -36,11 +36,12 @@ td.n{font-variant-numeric:tabular-nums}td.b{font-weight:700;color:var(--navy)}td
 .okbox{background:var(--okbg);border:1px solid #bbf7d0;color:var(--ok);padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.55;margin-top:14px}
 .note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6}.hide{display:none}
 footer{font-size:11px;color:var(--muted);text-align:center;margin-top:26px;line-height:1.6}
+  .brand img{height:26px;width:auto;vertical-align:middle;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="brand">Metcal<a href="../">&larr; All tools</a></div>
+  <div class="brand"><img src="../logo.png" alt="Metcal"><a href="../">&larr; All tools</a></div>
   <header><h1>TUR / TAR &amp; Decision Rule</h1>
     <p>Test uncertainty ratio, test accuracy ratio, and guard-banded accept/reject limits for statements of conformity.</p></header>
   <div class="tabs" role="tablist">
@@ -86,7 +87,8 @@ footer{font-size:11px;color:var(--muted);text-align:center;margin-top:26px;line-
     <div class="row" style="margin-top:16px;"><div class="field" style="flex:0 0 auto;"><button class="tab" style="border-radius:8px;border-bottom:1px solid var(--border);" onclick="useBudget()">Use this U in the ratios</button></div></div>
     <p class="note">Divisors follow the GUM: a value quoted as an expanded uncertainty at k&nbsp;=&nbsp;2 is divided by 2; a half-width limit with no distribution stated is treated as rectangular and divided by &radic;3; triangular by &radic;6; U-shaped by &radic;2. Display resolution is normally entered as a rectangular half-width of half the least significant digit.</p>
   </div>
-  <footer>TUR per ANSI/NCSL Z540.3; guard-band multiplier M = 1.04 &minus; exp(0.38&nbsp;ln&nbsp;TUR &minus; 0.54) from the Z540.3 Handbook, fitted for a worst-case 2&nbsp;% probability of false accept.<br>Reference tool only &mdash; the decision rule actually applied must be the one documented and agreed with the customer.<br>Metcal Technologies (M) Sdn. Bhd.</footer>
+  <footer>TUR per ANSI/NCSL Z540.3; guard-band multiplier M = 1.04 &minus; exp(0.38&nbsp;ln&nbsp;TUR &minus; 0.54) from the Z540.3 Handbook, fitted for a worst-case 2&nbsp;% probability of false accept.<br>Reference tool only &mdash; the decision rule actually applied must be the one documented and agreed with the customer.<br>Metcal Technologies (M) Sdn. Bhd.<br>Tool version 1.0 &middot; updated 7 August 2026.
+  </footer>
 </div>
 <script>
 function num(id){const v=parseFloat(document.getElementById(id).value);return isNaN(v)?null:v;}
