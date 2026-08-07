@@ -51,18 +51,19 @@ footer{font-size:11px;color:var(--muted);text-align:center;margin-top:26px;line-
   <div class="card" id="t1">
     <h2>Ratios</h2>
     <div class="row" style="margin-bottom:12px;">
-      <div class="field"><label for="unit">Unit label</label><input id="unit" value="kPa" oninput="calc()"></div>
       <div class="field"><label for="tolMode">Tolerance form</label>
         <select id="tolMode" onchange="calc()"><option value="sym" selected>Symmetric &plusmn;</option><option value="asym">Asymmetric</option></select></div>
     </div>
     <div class="row" style="margin-bottom:12px;" id="symRow">
       <div class="field"><label for="tol">UUT tolerance &plusmn;</label><input type="number" step="any" id="tol" value="0.5" oninput="calc()"></div>
-      <div class="field"><label for="U">Expanded uncertainty U (k = 2)</label><input type="number" step="any" id="U" value="0.1" oninput="calc()"></div>
       <div class="field"><label for="std">Reference standard tolerance &plusmn;</label><input type="number" step="any" id="std" value="0.1" oninput="calc()"></div>
     </div>
     <div class="row hide" style="margin-bottom:12px;" id="asymRow">
       <div class="field"><label for="ul">Upper limit (+)</label><input type="number" step="any" id="ul" value="0.5" oninput="calc()"></div>
       <div class="field"><label for="ll">Lower limit (&minus;)</label><input type="number" step="any" id="ll" value="-0.3" oninput="calc()"></div>
+    </div>
+    <div class="row" style="margin-bottom:12px;">
+      <div class="field" style="max-width:340px;"><label for="U">Expanded uncertainty U (k = 2)</label><input type="number" step="any" id="U" value="0.1" oninput="calc()"></div>
     </div>
     <div class="out" id="k1"></div><div class="work" id="w1"></div><div id="v1"></div>
     <p class="note"><strong>TUR</strong> is the tolerance span divided by twice the expanded uncertainty of the <em>measurement process</em> &mdash; not of the reference standard alone. The standard's uncertainty is only one contributor; repeatability, resolution of the item under test and environment all belong in the denominator. Using the standard's accuracy alone gives <strong>TAR</strong>, which is the older and weaker measure.</p>
@@ -114,7 +115,7 @@ function calcBudget(){var sum=0;
   document.getElementById('k3').innerHTML=kpi('Combined u<sub>c</sub>',f(uc,6),'root sum of squares')+kpi('Expanded U',f(U,6),'k = 2, about 95 % coverage');}
 function useBudget(){if(window.__U===undefined)return;document.getElementById('U').value=f(window.__U,8);tab('t1',document.querySelectorAll('.tab[role="tab"]')[0]);calc();}
 function calc(){
-  var mode=document.getElementById('tolMode').value,un=document.getElementById('unit').value||'';
+  var mode=document.getElementById('tolMode').value;
   document.getElementById('symRow').classList.toggle('hide',mode!=='sym');
   document.getElementById('asymRow').classList.toggle('hide',mode==='sym');
   var U=num('U'),K=document.getElementById('k1'),W=document.getElementById('w1'),V=document.getElementById('v1');
@@ -127,8 +128,8 @@ function calc(){
   var tar=(mode==='sym'&&stdTol!==null&&stdTol!==0)?Math.abs(num('tol')/stdTol):null;
   K.innerHTML=kpi('TUR',f(tur,2)+' : 1',(tur>=4?'meets the 4:1 rule':'below 4:1 \u2014 guard band or document the risk'))
    +(tar!==null?kpi('TAR',f(tar,2)+' : 1','tolerance \u00f7 standard tolerance'):'')
-   +kpi('Tolerance span',f(span,6)+' '+un,f(tolMinus,6)+' to +'+f(tolPlus,6))
-   +kpi('U (k = 2)',f(U,6)+' '+un,'measurement process');
+   +kpi('Tolerance span',f(span,6),f(tolMinus,6)+' to +'+f(tolPlus,6))
+   +kpi('U (k = 2)',f(U,6),'measurement process');
   W.textContent='TUR = tolerance span / (2 \u00d7 U)\nTUR = '+f(span,6)+' / (2 \u00d7 '+f(U,6)+')\nTUR = '+f(tur,4)+' : 1'
     +(tar!==null?('\n\nTAR = UUT tolerance / standard tolerance\nTAR = '+f(Math.abs(num('tol')),6)+' / '+f(Math.abs(stdTol),6)+' = '+f(tar,4)+' : 1'):'');
   V.innerHTML=tur>=4?'<div class="okbox"><strong>TUR '+f(tur,2)+':1 meets the 4:1 rule.</strong> Simple acceptance is available if that is the decision rule you have agreed.</div>'
@@ -143,14 +144,14 @@ function calc(){
       else if(dev<=tolPlus+1e-12&&dev>=tolMinus-1e-12) verdict=pill('cond','REJECT \u2014 inside tolerance but within the guard band');
       else verdict=pill('fail','REJECT'); }
     return '<tr><td class="b">'+r.name+(r.note?'<br><span style="font-weight:400;color:var(--muted);font-size:12px;">'+r.note+'</span>':'')+'</td>'
-      +'<td class="n">'+f(r.w,6)+' '+un+'</td><td class="n">'+f(al,6)+' to '+f(au,6)+' '+un+'</td><td>'+verdict+'</td></tr>';}).join('');
+      +'<td class="n">'+f(r.w,6)+'</td><td class="n">'+f(al,6)+' to '+f(au,6)+'</td><td>'+verdict+'</td></tr>';}).join('');
   var V2=document.getElementById('v2');
   if(dev===null){V2.innerHTML='';}
   else{var auZ=tolPlus-(m||0)*U,alZ=tolMinus+(m||0)*U;
     var inTol=dev<=tolPlus+1e-12&&dev>=tolMinus-1e-12,inZ=dev<=auZ+1e-12&&dev>=alZ-1e-12;
-    V2.innerHTML=(inTol&&!inZ)?'<div class="warnbox"><strong>Measured '+f(dev,6)+' '+un+' falls inside the tolerance but within the guard band.</strong> Under simple acceptance this passes; under a guard-banded rule it does not. Which one applies is whatever you documented and agreed with the customer.</div>'
-      :(inTol?'<div class="okbox"><strong>Measured '+f(dev,6)+' '+un+' is inside tolerance under every rule shown.</strong></div>'
-      :'<div class="warnbox"><strong>Measured '+f(dev,6)+' '+un+' is outside the tolerance.</strong> It fails regardless of decision rule.</div>');}
+    V2.innerHTML=(inTol&&!inZ)?'<div class="warnbox"><strong>Measured '+f(dev,6)+' falls inside the tolerance but within the guard band.</strong> Under simple acceptance this passes; under a guard-banded rule it does not. Which one applies is whatever you documented and agreed with the customer.</div>'
+      :(inTol?'<div class="okbox"><strong>Measured '+f(dev,6)+' is inside tolerance under every rule shown.</strong></div>'
+      :'<div class="warnbox"><strong>Measured '+f(dev,6)+' is outside the tolerance.</strong> It fails regardless of decision rule.</div>');}
 }
 buildBudget(); calc();</script>
 </body>
