@@ -1,0 +1,40 @@
+name: Tests
+
+# The suite lives in the metcaltechnologies.github.io repo so there is one copy
+# of it. This checks that out, drops this repo's working copy over the top, and
+# runs the whole site's tests - so this tool is exercised in place, inside the
+# real assembled site, rather than on its own.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the tools site (holds the test harness)
+        uses: actions/checkout@v4
+        with:
+          repository: metcaltechnologies/metcaltechnologies.github.io
+          path: site
+
+      - name: Check out this tool over the top
+        uses: actions/checkout@v4
+        with:
+          path: site/_overlay/TUR-CALCULATOR
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install
+        working-directory: site/tests
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Run the numeric suite
+        working-directory: site/tests
+        run: node run.mjs
