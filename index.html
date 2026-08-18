@@ -124,6 +124,16 @@ html[data-theme="dark"] .box img{filter:brightness(0) invert(1);}
 .mtCopy[hidden]{display:none;}
 .mtCopy.ok{color:var(--good);border-color:var(--good);}
 
+/* ---- Accreditation notice ---- */
+.mtNotice{margin:0 0 18px;}
+.mtNotice:empty{display:none;}
+.mtNoticeItem{display:flex;gap:10px;align-items:flex-start;padding:12px 15px;margin:0 0 8px;
+              border-radius:9px;font-size:13.5px;line-height:1.5;border:1px solid;}
+.mtNoticeItem b{font-weight:700;}
+.mtNoticeItem.warn{background:var(--warnbg);border-color:var(--warn);color:var(--warn);}
+.mtNoticeItem.bad{background:var(--badbg);border-color:var(--bad);color:var(--bad);}
+.mtNoticeItem svg{flex:0 0 auto;width:17px;height:17px;margin-top:1px;}
+
 /* ---- Print ---- */
 @media print{
   .mtHead,.mtNav,.mtCopy,.tabs,button,.btn,.fb,#fbOpen,.soon{display:none !important;}
@@ -408,7 +418,54 @@ buildBudget(); calc();</script>
     if(btn && !btn.disabled){ e.preventDefault(); btn.click(); }
   });
 
-  function init(){ mountThemeButton(); applyTheme(readTheme()); mountCopyButtons(); }
+  /* ------------- Accreditation expiry notice -------------
+     Dates come from CMC-LOOKUP/data/schedules.csv, published as schedules.json,
+     so there is one place to update when a schedule is reissued. Silent while
+     every schedule has more than WARN_DAYS left. */
+  var WARN_DAYS = 180;
+  var WARN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 3.6 1.8 20.4h20.4L12 3.6z"/><path d="M12 10v4.4M12 17.4v.1"/></svg>';
+
+  function noticeFor(s, today){
+    var end = new Date(s.expires + 'T00:00:00Z');
+    if (isNaN(end)) return null;
+    var days = Math.floor((end - today) / 86400000);
+    var name = s.name || ('SAMM ' + s.samm);
+    if (days < 0) {
+      return { cls: 'bad', html: '<b>' + name + ' accreditation lapsed on ' +
+        end.toISOString().slice(0, 10) + '.</b> Do not quote these CMC values until the ' +
+        'renewed schedule is published and loaded here.' };
+    }
+    if (days <= WARN_DAYS) {
+      return { cls: 'warn', html: '<b>' + name + ' expires in ' + days + ' day' +
+        (days === 1 ? '' : 's') + ' (' + end.toISOString().slice(0, 10) + ').</b> ' +
+        'Check whether a renewed schedule has been issued.' };
+    }
+    return null;
+  }
+
+  function mountNotices(){
+    var host = doc.getElementById('mtNotice');
+    if (!host || !window.fetch) return;
+    fetch('/CMC-LOOKUP/schedules.json', { cache: 'no-cache' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.schedules) return;
+        var today = new Date();
+        d.schedules.forEach(function (s) {
+          var n = noticeFor(s, today);
+          if (!n) return;
+          var el = doc.createElement('div');
+          el.className = 'mtNoticeItem ' + n.cls;
+          el.setAttribute('role', 'status');
+          el.innerHTML = WARN_ICON + '<div>' + n.html + '</div>';
+          host.appendChild(el);
+        });
+      })
+      .catch(function () {});   // advisory only - never block the tools
+  }
+  window.__metcalNoticeFor = noticeFor;   // exposed for the test suite
+
+  function init(){ mountThemeButton(); applyTheme(readTheme()); mountCopyButtons(); mountNotices(); }
   if(doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', init);
   else init();
 })();
