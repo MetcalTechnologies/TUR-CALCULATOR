@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Test uncertainty ratio, test accuracy ratio, guard-banded acceptance limits and a conformity verdict to ANSI/NCSL Z540.3 and ISO/IEC 17025.">
 <title>TUR / TAR &amp; Decision Rule — Metcal Technologies</title>
 <meta name="theme-color" content="#144A81">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon-192.png">
 <style>
 :root{--navy:#0f2942;--blue:#1a5f9e;--accent:#2f8fd0;--brand:#144A81;--bg:#f4f7fa;--card:#fff;--border:#d9e2ec;--text:#1c2b39;--muted:#5b7083;--orange:#e8792a;--warn:#b45309;--warnbg:#fffbeb;--ok:#166534;--okbg:#f0fdf4;--bad:#b91c1c;--badbg:#fef2f2}
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);padding:24px}
@@ -38,10 +42,120 @@ td.n{font-variant-numeric:tabular-nums}td.b{font-weight:700;color:var(--navy)}td
 footer{font-size:11px;color:var(--muted);text-align:center;margin-top:26px;line-height:1.6}
   .brand img{height:26px;width:auto;vertical-align:middle;}
 </style>
+<!-- METCAL:SHARED v1 STYLE START — generated, keep identical across repos -->
+<style>
+/* ---- Canonical brand tokens. Redefined here so every page resolves the same
+       values regardless of what its own :root block said. ---- */
+:root{
+  --brand:#144A81; --navy:#144A81; --blue:#1a5f9e; --accent:#2f8fd0;
+  --ink:#1c2b39; --text:#1c2b39; --muted:#5b7083; --orange:#e8792a;
+  --bg:#eef1f5; --card:#ffffff; --border:#dde4ec;
+  --ok:#166534; --okbg:#f0fdf4; --warn:#b45309; --warnbg:#fffbeb;
+  --bad:#b91c1c; --badbg:#fef2f2; --good:#1e8e5a;
+  --shadow:0 1px 3px rgba(18,63,110,.06);
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --brand:#8fbde8; --navy:#9cc6ee; --blue:#7fb3e3; --accent:#4ea3dd;
+  --ink:#e4ecf4; --text:#e4ecf4; --muted:#9aabbd; --orange:#f0913f;
+  --bg:#111a24; --card:#18242f; --border:#2b3a49;
+  --ok:#6ee7a8; --okbg:#132a1f; --warn:#f0b445; --warnbg:#2b2416;
+  --bad:#f28b82; --badbg:#2c1a1a; --good:#6ee7a8;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+/* Hard-coded #fff in the original stylesheets would survive dark mode; pin them. */
+html[data-theme="dark"]{--surface2:#1f2c38;--hilite:#22384c;}
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .tab,
+html[data-theme="dark"] header.siteBar,
+html[data-theme="dark"] .band,
+html[data-theme="dark"] .fb,
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] .fbBtn.alt{background:var(--card);color:var(--text);border-color:var(--border);}
+/* Panels the original stylesheets painted a near-white #f8fafc / #fbfdff / #fff. */
+html[data-theme="dark"] .summary,
+html[data-theme="dark"] .result,
+html[data-theme="dark"] .kpi,
+html[data-theme="dark"] .work,
+html[data-theme="dark"] .side,
+html[data-theme="dark"] .plot,
+html[data-theme="dark"] .btn2{background:var(--surface2);color:var(--text);border-color:var(--border);}
+html[data-theme="dark"] .btn:hover,
+html[data-theme="dark"] .btn2:hover,
+html[data-theme="dark"] .fbBtn.alt:hover,
+html[data-theme="dark"] .cur td,
+html[data-theme="dark"] .hit td{background:var(--hilite);}
+html[data-theme="dark"] .fbBtn{background:var(--blue);color:#0d1720;}
+html[data-theme="dark"] .soon{border-color:var(--border);}
+html[data-theme="dark"] .tool{box-shadow:var(--shadow);}
+
+/* ---- Unified page header ---- */
+.mtHead{display:flex;align-items:center;justify-content:space-between;gap:16px;
+        flex-wrap:wrap;margin:0 0 18px;}
+.mtLogo{display:inline-flex;align-items:center;text-decoration:none;}
+.mtLogo img{display:block;height:34px;width:auto;}
+/* logo.png is solid #144A81 on transparency, so knocking it to black and
+   inverting gives a clean white wordmark with the antialiasing intact. */
+html[data-theme="dark"] .mtLogo img,
+html[data-theme="dark"] .brand img,
+html[data-theme="dark"] .box img{filter:brightness(0) invert(1);}
+.mtNav{display:flex;align-items:center;gap:8px;}
+.mtBack{font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;
+        padding:7px 10px;border-radius:8px;}
+.mtBack:hover{color:var(--navy);background:var(--card);text-decoration:underline;}
+.mtIconBtn{display:inline-flex;align-items:center;justify-content:center;
+           width:36px;height:36px;padding:0;border:1px solid var(--border);
+           border-radius:8px;background:var(--card);color:var(--muted);
+           cursor:pointer;font-family:inherit;line-height:0;}
+.mtIconBtn:hover{color:var(--navy);border-color:var(--accent);}
+.mtIconBtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.mtIconBtn svg{width:18px;height:18px;}
+
+/* ---- Copy-results affordance ---- */
+.mtCardHead{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.mtCopy{border:1px solid var(--border);background:var(--card);color:var(--muted);
+        font-family:inherit;font-size:11.5px;font-weight:700;letter-spacing:.04em;
+        text-transform:uppercase;padding:6px 11px;border-radius:7px;cursor:pointer;
+        white-space:nowrap;}
+.mtCopy:hover{color:var(--navy);border-color:var(--accent);}
+.mtCopy:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.mtCopy[hidden]{display:none;}
+.mtCopy.ok{color:var(--good);border-color:var(--good);}
+
+/* ---- Print ---- */
+@media print{
+  .mtHead,.mtNav,.mtCopy,.tabs,button,.btn,.fb,#fbOpen,.soon{display:none !important;}
+  body{background:#fff !important;color:#000 !important;padding:0 !important;}
+  .wrap{max-width:none;padding:0;}
+  .card{break-inside:avoid;page-break-inside:avoid;box-shadow:none !important;
+        border:1px solid #999 !important;margin-bottom:12px;}
+  .hide{display:none !important;}
+  a[href]::after{content:"";}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;animation:none !important;}
+}
+</style>
+<!-- METCAL:SHARED v1 STYLE END -->
+<!-- METCAL:SHARED v1 THEMEINIT START -->
+<script>
+/* Runs before first paint so the page never flashes light then dark. */
+(function(){try{
+  var s=localStorage.getItem('metcal-theme');
+  if(!s||s==='auto'){s=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+  document.documentElement.setAttribute('data-theme',s);
+}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+<!-- METCAL:SHARED v1 THEMEINIT END -->
 </head>
 <body>
 <div class="wrap">
-  <div class="brand"><img src="../logo.png" alt="Metcal"><a href="../">&larr; All tools</a></div>
+  <div class="mtHead">
+    <a class="mtLogo" href="../" aria-label="Metcal Technologies — all tools"><img src="../logo.png" alt="Metcal Technologies"></a>
+    <nav class="mtNav" aria-label="Site"><a class="mtBack" href="../">&larr; All tools</a></nav>
+  </div>
   <header><h1>TUR / TAR &amp; Decision Rule</h1>
     <p>Test uncertainty ratio, test accuracy ratio, and guard-banded accept/reject limits for statements of conformity.</p></header>
   <div class="tabs" role="tablist">
@@ -156,5 +270,149 @@ function calc(){
       :'<div class="warnbox"><strong>Measured '+f(dev,6)+' is outside the tolerance.</strong> It fails regardless of decision rule.</div>');}
 }
 buildBudget(); calc();</script>
+<!-- METCAL:SHARED v1 SCRIPT START — generated, keep identical across repos -->
+<script>
+(function(){
+  "use strict";
+  var doc = document, root = doc.documentElement;
+
+  /* ---------------- Theme toggle ---------------- */
+  var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg>';
+  var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.2A8.2 8.2 0 019.8 4a8.4 8.4 0 108.4 10.2 8.5 8.5 0 011.8 0z"/></svg>';
+
+  function readTheme(){
+    try{ return localStorage.getItem('metcal-theme') || 'auto'; }catch(e){ return 'auto'; }
+  }
+  function applyTheme(pref){
+    var dark = pref === 'dark' || (pref === 'auto' && matchMedia('(prefers-color-scheme:dark)').matches);
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    var meta = doc.querySelector('meta[name="theme-color"]');
+    if(meta) meta.setAttribute('content', dark ? '#111a24' : '#144A81');
+    var btn = doc.getElementById('mtTheme');
+    if(btn){
+      btn.innerHTML = dark ? SUN : MOON;
+      btn.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+      btn.setAttribute('title', btn.getAttribute('aria-label'));
+    }
+  }
+  function toggleTheme(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try{ localStorage.setItem('metcal-theme', next); }catch(e){}
+    applyTheme(next);
+  }
+  function mountThemeButton(){
+    var nav = doc.querySelector('.mtNav');
+    if(!nav || doc.getElementById('mtTheme')) return;
+    var b = doc.createElement('button');
+    b.type = 'button'; b.id = 'mtTheme'; b.className = 'mtIconBtn';
+    b.addEventListener('click', toggleTheme);
+    nav.appendChild(b);
+  }
+  try{
+    matchMedia('(prefers-color-scheme:dark)').addEventListener('change', function(){
+      if(readTheme() === 'auto') applyTheme('auto');
+    });
+  }catch(e){}
+
+  /* ---------------- Copy results as TSV ---------------- */
+  function cellText(el){
+    return (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+  function serialise(card){
+    var lines = [], seen = [];
+    Array.prototype.forEach.call(card.querySelectorAll('table'), function(t){
+      if(!t.offsetParent && t.offsetHeight === 0) return;
+      seen.push(t);
+      Array.prototype.forEach.call(t.rows, function(r){
+        var cells = Array.prototype.map.call(r.cells, cellText);
+        if(cells.join('')) lines.push(cells.join('\t'));
+      });
+      lines.push('');
+    });
+    var clone = card.cloneNode(true);
+    Array.prototype.forEach.call(clone.querySelectorAll('table, .mtCopy, button, script, .note'), function(n){
+      n.parentNode.removeChild(n);
+    });
+    var loose = cellText(clone);
+    if(loose) lines.unshift(loose);
+    return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function payload(card){
+    var body = serialise(card);
+    if(!body) return '';
+    var stamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    return (doc.title || 'Metcal') + '\n' + stamp + ' UTC\n\n' + body +
+           '\n\nGenerated by Metcal Calibration Tools — reference only.';
+  }
+  function writeClipboard(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function(res, rej){
+      var ta = doc.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly','');
+      ta.style.cssText = 'position:fixed;top:-1000px;opacity:0;';
+      doc.body.appendChild(ta); ta.select();
+      var ok = false;
+      try{ ok = doc.execCommand('copy'); }catch(e){}
+      doc.body.removeChild(ta);
+      ok ? res() : rej();
+    });
+  }
+  function isResultCard(card){
+    if(card.id === 'resCard' || card.id === 'resultCard') return true;
+    return !!card.querySelector('table, .result, .summary, .out');
+  }
+  function mountCopy(card){
+    var head = card.querySelector('h2');
+    var btn = doc.createElement('button');
+    btn.type = 'button'; btn.className = 'mtCopy'; btn.textContent = 'Copy';
+    btn.title = 'Copy this panel — tables paste straight into a spreadsheet';
+    btn.addEventListener('click', function(){
+      var text = payload(card);
+      if(!text){ btn.textContent = 'Nothing yet'; }
+      else {
+        writeClipboard(text).then(function(){
+          btn.textContent = 'Copied'; btn.classList.add('ok');
+        }, function(){ btn.textContent = 'Press Ctrl+C'; });
+      }
+      setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1800);
+    });
+    if(head){
+      var bar = doc.createElement('div');
+      bar.className = 'mtCardHead';
+      head.parentNode.insertBefore(bar, head);
+      bar.appendChild(head);
+      bar.appendChild(btn);
+      head.style.margin = '0';
+    } else {
+      card.insertBefore(btn, card.firstChild);
+    }
+  }
+  function mountCopyButtons(){
+    Array.prototype.forEach.call(doc.querySelectorAll('.card'), function(card){
+      if(isResultCard(card)) mountCopy(card);
+    });
+  }
+
+  /* ---------------- Enter runs the calculation ---------------- */
+  doc.addEventListener('keydown', function(e){
+    if(e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey) return;
+    var t = e.target;
+    if(!t || !t.tagName) return;
+    if(t.tagName !== 'INPUT' && t.tagName !== 'SELECT') return;
+    if(t.type === 'file' || t.type === 'checkbox' || t.type === 'radio') return;
+    var card = t.closest ? t.closest('.card') : null;
+    if(!card) return;
+    var btn = card.querySelector('button.btn:not(.btn2)') || card.querySelector('button.btn');
+    if(btn && !btn.disabled){ e.preventDefault(); btn.click(); }
+  });
+
+  function init(){ mountThemeButton(); applyTheme(readTheme()); mountCopyButtons(); }
+  if(doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+<!-- METCAL:SHARED v1 SCRIPT END -->
 </body>
 </html>
