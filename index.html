@@ -68,6 +68,8 @@ footer{font-size:11px;color:var(--muted);text-align:center;margin-top:26px;line-
 :root{
   --brand:#144A81; --navy:#144A81; --blue:#1a5f9e; --accent:#2f8fd0;
   --ink:#1c2b39; --text:#1c2b39; --muted:#5b7083; --orange:#e8792a;
+  /* --orange is 2.9:1 on white - fine for a rule or a border, too faint for text */
+  --orange-text:#b8551a;
   --bg:#eef1f5; --card:#ffffff; --border:#dde4ec;
   --ok:#166534; --okbg:#f0fdf4; --warn:#b45309; --warnbg:#fffbeb;
   --bad:#b91c1c; --badbg:#fef2f2; --good:#1e8e5a;
@@ -77,6 +79,7 @@ html[data-theme="dark"]{
   color-scheme:dark;
   --brand:#8fbde8; --navy:#9cc6ee; --blue:#7fb3e3; --accent:#4ea3dd;
   --ink:#e4ecf4; --text:#e4ecf4; --muted:#9aabbd; --orange:#f0913f;
+  --orange-text:#f0913f;
   --bg:#111a24; --card:#18242f; --border:#2b3a49;
   --ok:#6ee7a8; --okbg:#132a1f; --warn:#f0b445; --warnbg:#2b2416;
   --bad:#f28b82; --badbg:#2c1a1a; --good:#6ee7a8;
@@ -181,10 +184,12 @@ html[data-theme="dark"] .box img{filter:brightness(0) invert(1);}
 </head>
 <body>
 <div class="wrap">
-  <div class="mtHead">
+  <header class="mtHead">
     <a class="mtLogo" href="../" aria-label="Metcal Technologies — all tools"><img src="../logo.png" alt="Metcal Technologies"></a>
     <nav class="mtNav" aria-label="Site"><a class="mtBack" href="../">&larr; All tools</a></nav>
-  </div>
+  </header>
+
+  <main id="content">
   <header><h1>TUR / TAR &amp; Decision Rule</h1>
     <p>Test uncertainty ratio, test accuracy ratio, and guard-banded accept/reject limits for statements of conformity.</p></header>
   <div class="tabs" role="tablist">
@@ -230,6 +235,8 @@ html[data-theme="dark"] .box img{filter:brightness(0) invert(1);}
     <div class="row" style="margin-top:16px;"><div class="field" style="flex:0 0 auto;"><button class="tab" style="border-radius:8px;border-bottom:1px solid var(--border);" onclick="useBudget()">Use this U in the ratios</button></div></div>
     <p class="note">Divisors follow the GUM: a value quoted as an expanded uncertainty at k&nbsp;=&nbsp;2 is divided by 2; a half-width limit with no distribution stated is treated as rectangular and divided by &radic;3; triangular by &radic;6; U-shaped by &radic;2. Display resolution is normally entered as a rectangular half-width of half the least significant digit.</p>
   </div>
+  </main>
+
   <footer>TUR per ANSI/NCSL Z540.3; guard-band multiplier M = 1.04 &minus; exp(0.38&nbsp;ln&nbsp;TUR &minus; 0.54) from the Z540.3 Handbook, fitted for a worst-case 2&nbsp;% probability of false accept.<br>Reference tool only &mdash; the decision rule actually applied must be the one documented and agreed with the customer.<br>Metcal Technologies (M) Sdn. Bhd.<br>Tool version 1.0 &middot; updated 7 August 2026.
   </footer>
 </div>
@@ -250,7 +257,7 @@ var DIST=[['k2','Expanded U (k = 2)',2],['k1','Standard u (k = 1)',1],['rect','R
 var BROWS=[['Reference standard','k2',0.08],['Repeatability','k1',0.02],['Resolution of the item','rect',0.005],['Environment / drift','rect',0.01],['Other','rect',0]];
 function buildBudget(){document.getElementById('brows').innerHTML=BROWS.map(function(r,i){
   return '<tr><td>'+r[0]+'</td><td><input type="number" step="any" id="bv'+i+'" value="'+r[2]+'" oninput="calcBudget()"></td>'
-    +'<td><select id="bd'+i+'" onchange="calcBudget()">'+DIST.map(function(d){return '<option value="'+d[0]+'"'+(d[0]===r[1]?' selected':'')+'>'+d[1]+'</option>';}).join('')+'</select></td>'
+    +'<td><select id="bd'+i+'" onchange="calcBudget()" aria-label="Distribution for uncertainty contribution '+(i+1)+'">'+DIST.map(function(d){return '<option value="'+d[0]+'"'+(d[0]===r[1]?' selected':'')+'>'+d[1]+'</option>';}).join('')+'</select></td>'
     +'<td class="n" id="bk'+i+'"></td><td class="n" id="bu'+i+'"></td><td class="n" id="bq'+i+'"></td></tr>';}).join('');calcBudget();}
 function calcBudget(){var sum=0;
   BROWS.forEach(function(r,i){var v=num('bv'+i)||0,key=document.getElementById('bd'+i).value;
@@ -484,7 +491,41 @@ buildBudget(); calc();</script>
   }
   window.__metcalNoticeFor = noticeFor;   // exposed for the test suite
 
-  function init(){ mountThemeButton(); applyTheme(readTheme()); mountCopyButtons(); mountNotices(); }
+  /* ------------- Announce results to screen readers -------------
+     Without this a calculated value simply appears and is never spoken. */
+  function mountLiveRegions(){
+    var sel = '.result, .summary, .out, #resBody, #resultBody, #rows, #k1, #v1, #sum1';
+    Array.prototype.forEach.call(doc.querySelectorAll(sel), function (el) {
+      if (!el.hasAttribute('aria-live')) el.setAttribute('aria-live', 'polite');
+    });
+  }
+
+  /* ------------- Report a problem, from the tool itself -------------
+     The feedback form lives on the front page, so a wrong figure spotted
+     inside a tool meant navigating away and re-picking the tool by hand.
+     This prefills the tool and the page it was seen on. */
+  var FB_EMAIL = 'm.amer@metcal.com.my';
+  function mountFeedbackLink(){
+    if (doc.getElementById('fbOpen')) return;            // the front page has the full form
+    var foot = doc.querySelector('footer');
+    if (!foot || doc.getElementById('mtReport')) return;
+    var tool = (doc.title || '').split('\u2014')[0].trim() || doc.title;
+    var body = 'Type: \nTool: ' + tool + '\nPage: ' + location.href +
+               '\n\nWhat looks wrong, and what did you expect?\n\n';
+    var a = doc.createElement('a');
+    a.id = 'mtReport';
+    a.href = 'mailto:' + FB_EMAIL + '?subject=' +
+             encodeURIComponent('Metcal tools \u2014 ' + tool) + '&body=' + encodeURIComponent(body);
+    a.textContent = 'Report a problem with this tool';
+    a.style.cssText = 'display:inline-block;margin-top:10px;color:var(--blue);';
+    foot.appendChild(doc.createElement('br'));
+    foot.appendChild(a);
+  }
+
+  function init(){
+    mountThemeButton(); applyTheme(readTheme());
+    mountCopyButtons(); mountNotices(); mountLiveRegions(); mountFeedbackLink();
+  }
   if(doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', init);
   else init();
 })();
